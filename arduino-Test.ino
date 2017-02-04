@@ -98,8 +98,8 @@ if((HOUR>0)&&(HOUR<13)&&(light>950)){digitalWrite(23,0);lcd.setCursor(15,1);lcd.
 if((HOUR<0)||(HOUR>13)){digitalWrite(23,0);lcd.setCursor(15,1);lcd.print(' ');}
 
 //// реле 2
-if(t<8){digitalWrite(25,1);lcd.setCursor(14,1);lcd.print('I');}
-if(t>10){digitalWrite(25,0);lcd.setCursor(14,1);lcd.print(' ');}
+if(t<15){digitalWrite(25,1);lcd.setCursor(14,1);lcd.print('O');}
+if(t>18){digitalWrite(25,0);lcd.setCursor(14,1);lcd.print(' ');}
 
 
 ////реле 3
