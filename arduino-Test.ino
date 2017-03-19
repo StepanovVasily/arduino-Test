@@ -1,6 +1,7 @@
 #include <DHT.h>
 #include <LiquidCrystal.h>
 #include <EEPROM.h>
+#include <SD.h>
 #define DHTPIN 53
 #define DHTTYPE DHT22
 DHT dht(DHTPIN, DHTTYPE);
@@ -8,6 +9,8 @@ LiquidCrystal lcd(8, 9, 4, 5, 6, 7);
 #include <iarduino_RTC.h>
 iarduino_RTC time(RTC_DS1307);
 
+
+ File dataFile;
 bool posLed=false;//позиция экрана
 int keyValue=100;
 int keyValueAfter=100;
@@ -17,8 +20,9 @@ bool runRender=true;
 unsigned long timeWater=millis();
   int waterState=0;
   bool waterPost=false;
-  int waterTMax=22;
-  int waterTMin=20.5;
+  int waterTMax=25;
+  int waterTMin=24;
+  bool sdSetup=false;
 void render(float h,float t, int light)
 {
   lcd.clear();
@@ -80,7 +84,7 @@ void setup()
   pinMode (27, OUTPUT);
   pinMode (29, OUTPUT);
   pinMode(A2, INPUT); //датчик углекислоты
-    
+   
     byte charL[8] = {    B01111,    B01000,    B01001,    B01001,    B01001,    B01001,    B11001,    B00000  };
     byte charIO[8] = {    B10010,    B10101,    B10101,    B11101,    B10101,    B10101,    B10010,    B00000  };
       byte char4[8] = {    B10001,    B10001,    B10001,    B10001,    B01111,    B00001,    B00001,    B00000  };
@@ -99,18 +103,25 @@ tOff=tOn+3;
 
  Serial.begin(9600);
   lcd.begin(16, 2);
+  if (SD.begin(4)) {
+  sdSetup=true;
+ 
+  }
+
 
 }
 
 void loop()
 {
 
+  for(int fi=0;fi!=10;fi++){//запись файла через каждые 1.5 минут
       
   //чтение датчиков
 runRender=1;
-
-  float h = dht.readHumidity();
   float t = dht.readTemperature();
+  float h = dht.readHumidity();
+  int humGround=-1;
+
  int HOUR = time.Hours;
   int MINUTE = time.minutes;
   int light = analogRead(A1);
@@ -213,7 +224,23 @@ switch(waterState)
 
   lcd.clear();
 
-  
+  if(sdSetup)//записывать только если карта инициализированна
+{
+
+  dataFile = SD.open(time.gettime("d-m-Y"), FILE_WRITE);
+dataFile.print(time.gettime("H:i:s")); 
+dataFile.print(t);//температура 
+dataFile.print(h);// влажность
+dataFile.print(light);// свет
+dataFile.print(humGround);//влажПочв
+dataFile.print(tOn);//включение нас
+dataFile.print(waterTMax);//включ разбрызг
+dataFile.flush();
+  dataFile.close();
+
+  }
+  }
+
   
 
 }
