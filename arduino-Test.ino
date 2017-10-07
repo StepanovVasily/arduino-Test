@@ -29,7 +29,7 @@ int posLed=0;//позиция экрана
 int keyValue=100;
 int keyState=0;
 bool runRender=true;
-  int tOn=15;
+  int tOn=16;
   int tOff=18;
 unsigned long timeWater=millis();
 unsigned long timeWaterInterval=30;
@@ -43,6 +43,10 @@ bool otoplStat=0;
   bool waterPost=false;
   int waterTMax=25;
   int waterTMin=24;
+  int lightOn=900;
+  int lightOff=910;
+  int hourOn=15;
+  int hourOff=22;
   bool sdSetup=false;
 
 void setup()
@@ -63,7 +67,7 @@ pinMode(10, OUTPUT);//отключить ethernet
       byte char4[8] = {    B10001,    B10001,    B10001,    B10001,    B01111,    B00001,    B00001,    B00000  };
        byte charN[8] = {    B10001,    B10001,    B10011,    B10101,    B10101,    B11001,    B10001,    B00000  };
        byte charD[8] = {    B01110,    B01010,    B01010,    B01010,    B01010,    B01010,    B11111,    B10001  };
-     
+     byte charYA[8] = {    B00111,    B01001,    B01001,    B00101,    B00111,    B00101,    B01001,    B10001  };
        byte charP[8] = {    B11111,    B10001,    B10001,    B10001,    B10001,    B10001,    B10001,    B00000  };
        byte charIoI[8] = {    B10001,    B10001,    B11101,    B10101,    B10011,    B10101,    B11101,    B00000  };
 tOn=EEPROM.read(0);
@@ -72,7 +76,29 @@ if(tOn<5||tOn>40)
     EEPROM.write(0, 15);
     tOn=15;
   }
-tOff=tOn+3;
+tOff=tOn+1;
+
+lightOn=EEPROM.read(3)*10;
+if(lightOn<0||lightOn>1040)
+  {
+    EEPROM.write(3, 90);
+    lightOn=900;
+  }
+lightOff=lightOn+10;
+
+hourOn=EEPROM.read(4);
+if(hourOn<0||hourOn>23)
+  {
+    EEPROM.write(4, 16);
+    hourOn=16;
+  }
+
+hourOff=EEPROM.read(5);
+if(hourOff<0||hourOff>23)
+  {
+    EEPROM.write(5, 22);
+    hourOff=22;
+  }
 
 timeWaterInterval=EEPROM.read(1);
 
@@ -85,6 +111,7 @@ waterTMax=waterTMin+1;
    lcd.createChar(4, charD);
     lcd.createChar(6, charP);
  lcd.createChar(7, charIoI);
+     //lcd.createChar(8, charYA);
  Serial.begin(9600);
   lcd.begin(16, 2);
   if (SD.begin(4)) {
@@ -109,7 +136,6 @@ waterTMax=waterTMin+1;
 void loop()
 {
 
-
  if((millis()-timeSensorsUpdate)>10000)//каждые 10 сек
   {
     timeSensorsUpdate=millis();
@@ -123,7 +149,7 @@ sens.t = dht1.readTemperature();
   
 ethernetData(sens);
   
- timeWriteSensorsFile=interval(timeWriteSensorsFile,600000,writeSensorsFile,sens);//запись файла через каждые 10 минут
+ timeWriteSensorsFile=interval(timeWriteSensorsFile,600000,writeSensorsFile, sens);//запись файла через каждые 10 минут
 
 timeRender=interval(timeRender,2000,render,sens);
 
@@ -132,6 +158,7 @@ timeReleLight=interval(timeReleLight,10000,releLight,sens);
 timeReleOtopl=interval(timeReleOtopl,10000,releOtopl,sens);
 
 
+/* пока отключенно
 switch(waterState)
 {
   case 0://если время больше 30 сек и температура выше, то обнулить время и перейти в режим полива
@@ -168,7 +195,7 @@ switch(waterState)
  
   }
 
-    
+    */
 
     getButton();
 
